@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require "octopoll"
+
+token_file = ARGV[0]
+repo = ARGV[1]
+interval = ARGV[2].to_i
+
+Octopoll.run token_file, repo, interval
