@@ -9,6 +9,7 @@ module Octopoll
       @states = {}
       @poll = Octopoll::Poll.new(token)
       @repo = repo
+      @initialized = false
     end
 
     def watch
@@ -27,6 +28,8 @@ module Octopoll
         transition r
       end
 
+      @initialized = true
+
       sleep @interval
     end
 
@@ -39,20 +42,20 @@ module Octopoll
 
       new_state = result.state
 
-      if @states[result.number] == :pending
-        case new_state
-        when :success
-          notify_success result
-        when :failure
-          notify_failure result
-        when :error
-          notify_failure result
-        when :pending
-          notify_pending result
-        end
-      else
-        if new_state == :pending
-          notify_pending result
+      if @initialized
+        if @states[result.number] == :pending
+          case new_state
+          when :success
+            notify_success result
+          when :failure
+            notify_failure result
+          when :error
+            notify_failure result
+          end
+        else
+          if new_state == :pending
+            notify_pending result
+          end
         end
       end
 
@@ -79,7 +82,7 @@ module Octopoll
 
     def notify(title, message, state)
       if OS.linux?
-        `notify-send "#{title}" "#{message}" --urgency #{state_urgency(state)}`
+        `notify-send "#{title}" "#{message}" --urgency #{state_urgency(state)} --expire-time 120000`
       else
         puts "#{title} -- #{message}".send(Octopoll.color(state))
       end
